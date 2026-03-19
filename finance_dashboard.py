@@ -4,7 +4,7 @@ import streamlit as st
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-PASSWORD = "Swesda.14523!!"  # ←←← CHANGE THIS TO YOUR OWN STRONG PASSWORD RIGHT NOW!
+PASSWORD = "your_strong_password_here"   # ← CHANGE THIS TO YOUR REAL PASSWORD
 
 if not st.session_state.logged_in:
     st.title("🔒 Alex's Personal Finance Dashboard")
@@ -16,13 +16,9 @@ if not st.session_state.logged_in:
             st.rerun()
         else:
             st.error("Incorrect password")
-    st.stop()import streamlit as st
-import pandas as pd
-import plotly.express as px
-import yfinance as yf
-import os
+    st.stop()
 
-st.set_page_config(page_title="Alex's Finance Dashboard", layout="wide")
+# ================== REST OF YOUR DASHBOARD CODE ==================
 st.title("💰 Alex's Personal Finance Dashboard")
 st.markdown("**Your exact expenses are now the default** — just edit amounts & groups")
 
