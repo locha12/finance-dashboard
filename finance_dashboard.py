@@ -1,10 +1,14 @@
 import streamlit as st
+import pandas as pd
+import plotly.express as px
+import yfinance as yf
+import os
 
 # ================== PASSWORD PROTECTION ==================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-PASSWORD = "your_strong_password_here"   # ← CHANGE THIS TO YOUR REAL PASSWORD
+PASSWORD = "your_strong_password_here"   # ← CHANGE THIS TO YOUR REAL PASSWORD RIGHT NOW!
 
 if not st.session_state.logged_in:
     st.title("🔒 Alex's Personal Finance Dashboard")
@@ -18,16 +22,7 @@ if not st.session_state.logged_in:
             st.error("Incorrect password")
     st.stop()
 
-# ================== REST OF YOUR DASHBOARD CODE ==================
-st.title("💰 Alex's Personal Finance Dashboard")
-st.markdown("**Your exact expenses are now the default** — just edit amounts & groups")
-
-# ================== FILE PATHS ==================
-EXP_FILE = "expenses.csv"
-SUPPLEMENTS_FILE = "supplements.csv"
-DEBT_FILE = "debts.csv"
-INV_FILE = "investments.csv"
-BTC_FILE = "bitcoin.csv"
+# ================== REST OF YOUR DASHBOARD (do not delete) ==================
 INCOME_FILE = "income.csv"
 SAVINGS_FILE = "savings.csv"
 METALS_FILE = "metals.csv"
