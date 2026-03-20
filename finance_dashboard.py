@@ -85,7 +85,7 @@ if "katrin_income" not in st.session_state: st.session_state.katrin_income = kat
 
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "📋 Expenses & Income", "💳 Debts", "📈 Investments"])
 
-# Overview (pies with $ + %)
+# Overview tab (pies with $ + %)
 with tab1:
     st.header("Net Worth Snapshot")
     combined_income = st.session_state.alex_income + st.session_state.katrin_income
@@ -137,7 +137,6 @@ with tab1:
         fig_major.update_traces(text=major_df["Display"], textinfo="text", textposition="inside")
         st.plotly_chart(fig_major, use_container_width=True)
 
-    # Investment pie with $ + %
     alloc_data = pd.DataFrame({
         "Category": ["Savings", "Stocks", "Bitcoin", "Altcoins", "Gold", "Silver", "Alex 401k", "Katrin 401k"],
         "Value": [savings_value, stocks_value, btc_value, altcoins_value, gold_value, silver_value, alex_401k, katrin_401k]
@@ -183,7 +182,7 @@ with tab3:
         st.rerun()
     st.metric("Total Debt Owed", f"${total_debt:,.0f}")
 
-# Investments tab (FULL with all expanders)
+# Investments tab
 with tab4:
     st.header("📈 Investments (Live Prices)")
     with st.expander("💵 Cash Savings", expanded=True):
@@ -229,4 +228,4 @@ with tab4:
             st.rerun()
     if st.button("🔄 Refresh All Live Prices"): st.rerun()
 
-st.caption("Password-protected cloud version — all data saved on Streamlit Cloud")
+st.caption("No password — direct access version")
