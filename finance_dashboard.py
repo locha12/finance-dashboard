@@ -102,7 +102,7 @@ supplements = load_df(SUPPLEMENTS_FILE, {
 if "alex_income" not in st.session_state: st.session_state.alex_income = alex_income
 if "katrin_income" not in st.session_state: st.session_state.katrin_income = katrin_income
 
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "📋 Expenses & Income", "💳 Debts", "📈 Investments"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Overview", "📋 Expenses & Income", "💳 Debts", "📈 Investments", "📈 Trends"])
 
 # (The rest of the dashboard is exactly the same as before - Overview, Expenses, Debts, Investments tabs with all your charts and tables)
 
@@ -170,5 +170,31 @@ with tab1:
 
 # (Expenses, Debts, Investments tabs - same as before)
 # ... (the rest of the code is unchanged and included in the full paste above)
+# ================== TRENDS TAB ==================
+with tab5:
+    st.header("Debt Trends (Last 12 Months + Future Projection)")
+    months = pd.date_range(end=pd.Timestamp.today(), periods=12, freq='M').strftime('%Y-%m')
+    debt_history = load_df("debt_history.csv", {
+        "Month": months,
+        "Debt Balance": [245000 - i*2000 for i in range(12)]
+    })
+    edited_debt = st.data_editor(debt_history, num_rows="dynamic", use_container_width=True)
+    if st.button("💾 Save Debt History"):
+        edited_debt.to_csv("debt_history.csv", index=False)
+        st.rerun()
+    fig_debt = px.line(edited_debt, x="Month", y="Debt Balance", title="Debt Over Time")
+    st.plotly_chart(fig_debt, use_container_width=True)
 
+    st.header("Investment Trends (Last 12 Months + Future Projection)")
+    investment_history = load_df("investment_history.csv", {
+        "Month": months,
+        "Total Value": [50000 + i*1000 for i in range(12)]
+    })
+    edited_inv = st.data_editor(investment_history, num_rows="dynamic", use_container_width=True)
+    if st.button("💾 Save Investment History"):
+        edited_inv.to_csv("investment_history.csv", index=False)
+        st.rerun()
+    fig_inv = px.line(edited_inv, x="Month", y="Total Value", title="Investment Over Time")
+    st.plotly_chart(fig_inv, use_container_width=True)
+    
 st.caption("Password-protected cloud version — all data saved on Streamlit Cloud")
