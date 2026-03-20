@@ -8,7 +8,7 @@ import os
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-PASSWORD = "your_strong_password_here"   # ← CHANGE THIS TO YOUR REAL PASSWORD!
+PASSWORD = "Swesda.14523!!"   # ← CHANGE THIS TO YOUR REAL PASSWORD!
 
 if not st.session_state.logged_in:
     st.title("🔒 Alex's Personal Finance Dashboard")
