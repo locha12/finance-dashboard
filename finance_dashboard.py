@@ -85,7 +85,7 @@ if "katrin_income" not in st.session_state: st.session_state.katrin_income = kat
 
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "📋 Expenses & Income", "💳 Debts", "📈 Investments"])
 
-# Overview
+# Overview (pies with $ + %)
 with tab1:
     st.header("Net Worth Snapshot")
     combined_income = st.session_state.alex_income + st.session_state.katrin_income
@@ -228,4 +228,4 @@ with tab4:
             st.rerun()
     if st.button("🔄 Refresh All Live Prices"): st.rerun()
 
-st.caption("No password — direct access version")
+st.caption("Clean cloud version — no password")
