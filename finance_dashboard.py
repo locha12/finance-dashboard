@@ -104,7 +104,7 @@ if "katrin_income" not in st.session_state: st.session_state.katrin_income = kat
 
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "📋 Expenses & Income", "💳 Debts", "📈 Investments"])
 
-# ================== OVERVIEW TAB (updated pies) ==================
+# Overview (pies with $ + %)
 with tab1:
     st.header("Net Worth Snapshot")
     combined_income = st.session_state.alex_income + st.session_state.katrin_income
@@ -112,7 +112,6 @@ with tab1:
     leftover = combined_income - total_exp
     total_debt = debts["Current Balance"].sum()
 
-    # Live prices (unchanged)
     stocks_value = sum(row["Shares"] * yf.Ticker(row["Ticker"]).history(period="1d")["Close"].iloc[-1] for _, row in investments.iterrows() if not yf.Ticker(row["Ticker"]).history(period="1d").empty)
     try: btc_value = btc_data["BTC Amount"].iloc[0] * yf.Ticker("BTC-USD").history(period="1d")["Close"].iloc[-1]
     except: btc_value = 0
@@ -137,33 +136,27 @@ with tab1:
     colC.metric("Total Debt", f"${total_debt:,.0f}")
     colD.metric("Net Worth", f"${net_worth:,.0f}", "Updated live")
 
-    # Two pies side-by-side with $ + % on slices
     st.subheader("Expense Breakdown")
     col_left, col_right = st.columns(2)
-
     with col_left:
         total_all = expenses["Amount"].sum()
         expenses["Display"] = expenses.apply(lambda x: f"${x['Amount']:,.0f}<br>({x['Amount']/total_all*100:.1f}%)" if total_all > 0 else "$0", axis=1)
         fig_all = px.pie(expenses, names="Category", values="Amount", title="All Individual Expenses")
         fig_all.update_traces(text=expenses["Display"], textinfo="text", textposition="inside")
         st.plotly_chart(fig_all, use_container_width=True)
-
     with col_right:
         supp_total = supplements["Amount"].sum()
         housing = expenses[expenses["Group"] == "Housing"]["Amount"].sum()
         food = expenses[expenses["Group"] == "Food"]["Amount"].sum()
         health = expenses[expenses["Group"] == "Health"]["Amount"].sum()
-        major_df = pd.DataFrame({
-            "Category": ["Housing", "Food", "Supplements", "Health"],
-            "Amount": [housing, food, supp_total, health]
-        })
+        major_df = pd.DataFrame({"Category": ["Housing", "Food", "Supplements", "Health"], "Amount": [housing, food, supp_total, health]})
         total_major = major_df["Amount"].sum()
         major_df["Display"] = major_df.apply(lambda x: f"${x['Amount']:,.0f}<br>({x['Amount']/total_major*100:.1f}%)" if total_major > 0 else "$0", axis=1)
         fig_major = px.pie(major_df, names="Category", values="Amount", title="Major Categories Breakdown")
         fig_major.update_traces(text=major_df["Display"], textinfo="text", textposition="inside")
         st.plotly_chart(fig_major, use_container_width=True)
 
-    # Investment pie (already has $ + %)
+    # Investment pie with $ + %
     alloc_data = pd.DataFrame({
         "Category": ["Savings", "Stocks", "Bitcoin", "Altcoins", "Gold", "Silver", "Alex 401k", "Katrin 401k"],
         "Value": [savings_value, stocks_value, btc_value, altcoins_value, gold_value, silver_value, alex_401k, katrin_401k]
@@ -174,7 +167,7 @@ with tab1:
     fig_alloc.update_traces(text=alloc_data["Display"], textinfo="text", textposition="inside")
     st.plotly_chart(fig_alloc, use_container_width=True)
 
-# Expenses tab (unchanged)
+# Expenses tab
 with tab2:
     st.header("Expenses vs Income")
     colA, colB = st.columns(2)
@@ -200,7 +193,7 @@ with tab2:
         st.rerun()
     st.metric("Total Supplements", f"${edited_supp['Amount'].sum():,.0f}")
 
-# Debts & Investments tabs (unchanged - they were already working)
+# Debts tab
 with tab3:
     st.header("Debt Tracker")
     edited_debts = st.data_editor(debts, num_rows="dynamic", use_container_width=True)
@@ -209,14 +202,50 @@ with tab3:
         st.rerun()
     st.metric("Total Debt Owed", f"${total_debt:,.0f}")
 
+# Investments tab (FULL with all expanders)
 with tab4:
     st.header("📈 Investments (Live Prices)")
-    # (full Investments tab code - same as before, with all expanders)
     with st.expander("💵 Cash Savings", expanded=True):
         new_savings = st.number_input("Savings Balance (USD)", value=float(savings), step=100.0)
         if st.button("💾 Save Savings"):
             pd.DataFrame({"Savings USD": [new_savings]}).to_csv(SAVINGS_FILE, index=False)
             st.rerun()
-    # ... (Gold & Silver, Stocks, Altcoins, Bitcoin, 401k expanders - same as previous full version)
+    with st.expander("🥇 Gold & Silver (Live)", expanded=True):
+        colG, colS = st.columns(2)
+        with colG: new_gold = st.number_input("Gold (grams)", value=float(metals["Gold Grams"].iloc[0]), step=1.0)
+        with colS: new_silver = st.number_input("Silver (ounces)", value=float(metals["Silver Ounces"].iloc[0]), step=1.0)
+        if st.button("💾 Save Metals"):
+            pd.DataFrame({"Gold Grams": [new_gold], "Silver Ounces": [new_silver]}).to_csv(METALS_FILE, index=False)
+            st.rerun()
+        st.metric("Gold Value", f"${gold_value:,.0f}" if 'gold_value' in locals() else "Live price loading...")
+        st.metric("Silver Value", f"${silver_value:,.0f}" if 'silver_value' in locals() else "Live price loading...")
+    with st.expander("📈 Stocks", expanded=False):
+        edited_inv = st.data_editor(investments, num_rows="dynamic", use_container_width=True)
+        if st.button("💾 Save Stock Changes"):
+            save_df(edited_inv, INV_FILE)
+            st.rerun()
+    with st.expander("🪙 Altcoins (XRP, ADA, SOL, DOT)", expanded=True):
+        edited_alt = st.data_editor(altcoins, num_rows="dynamic", use_container_width=True)
+        if st.button("💾 Save Altcoins"):
+            save_df(edited_alt, ALTCOINS_FILE)
+            st.rerun()
+    with st.expander("₿ Bitcoin (Live)", expanded=True):
+        edited_btc = st.data_editor(btc_data, use_container_width=True)
+        if st.button("💾 Save Bitcoin Amount"):
+            save_df(edited_btc, BTC_FILE)
+            st.rerun()
+        try:
+            btc_price = yf.Ticker("BTC-USD").history(period="1d")["Close"].iloc[-1]
+            btc_value = edited_btc["BTC Amount"].iloc[0] * btc_price
+            st.metric("Bitcoin Value", f"${btc_value:,.0f}", f"@ ${btc_price:,.0f}")
+        except: st.write("Bitcoin price temporarily unavailable")
+    with st.expander("🏦 401k Accounts", expanded=True):
+        colAx, colKa = st.columns(2)
+        with colAx: new_alex401 = st.number_input("Alex 401k Balance", value=float(alex_401k), step=100.0)
+        with colKa: new_katrin401 = st.number_input("Katrin 401k Balance", value=float(katrin_401k), step=100.0)
+        if st.button("💾 Save 401k Balances"):
+            pd.DataFrame({"Alex 401k": [new_alex401], "Katrin 401k": [new_katrin401]}).to_csv(RETIREMENT_FILE, index=False)
+            st.rerun()
+    if st.button("🔄 Refresh All Live Prices"): st.rerun()
 
 st.caption("Password-protected cloud version — all data saved on Streamlit Cloud")
