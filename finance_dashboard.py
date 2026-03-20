@@ -5,14 +5,19 @@ import yfinance as yf
 import os
 
 # ================== PASSWORD PROTECTION ==================
+# ================== PASSWORD PROTECTION (with debug) ==================
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-PASSWORD = "test"   # ← CHANGE THIS TO YOUR REAL PASSWORD!
+PASSWORD = "test"   # ← Make sure this is exactly "test" (no extra spaces or quotes)
 
 if not st.session_state.logged_in:
     st.title("🔒 Alex's Personal Finance Dashboard")
     st.markdown("### Enter Password")
+    
+    # DEBUG LINE — this will show what password the app is actually using
+    st.write("**Debug:** Current password in code is:", repr(PASSWORD))
+    
     pw = st.text_input("Password", type="password")
     if st.button("Login"):
         if pw == PASSWORD:
@@ -21,8 +26,6 @@ if not st.session_state.logged_in:
         else:
             st.error("Incorrect password")
     st.stop()
-
-# ================== DASHBOARD ==================
 st.set_page_config(page_title="Alex's Finance Dashboard", layout="wide")
 st.title("💰 Alex's Personal Finance Dashboard")
 st.markdown("**Your exact expenses are now the default** — just edit amounts & groups")
