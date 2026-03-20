@@ -8,7 +8,7 @@ import os
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
-PASSWORD = "your_strong_password_here"   # ← CHANGE THIS TO YOUR REAL PASSWORD NOW!
+PASSWORD = "your_strong_password_here"   # ← CHANGE THIS TO YOUR REAL PASSWORD!
 
 if not st.session_state.logged_in:
     st.title("🔒 Alex's Personal Finance Dashboard")
@@ -22,7 +22,7 @@ if not st.session_state.logged_in:
             st.error("Incorrect password")
     st.stop()
 
-# ================== FULL DASHBOARD CODE ==================
+# ================== DASHBOARD ==================
 st.set_page_config(page_title="Alex's Finance Dashboard", layout="wide")
 st.title("💰 Alex's Personal Finance Dashboard")
 st.markdown("**Your exact expenses are now the default** — just edit amounts & groups")
@@ -64,7 +64,7 @@ def save_income(alex, katrin):
     df = pd.DataFrame({"Alex": [alex], "Katrin": [katrin]})
     df.to_csv(INCOME_FILE, index=False)
 
-# Your full expenses
+# Your expenses
 expenses = load_df(EXP_FILE, {
     "Category": ["Haus", "GYM", "Audible", "Spotify", "Gas", "Lebensversicherung", "Internet", "Health Insurance", "Powerwall", "Affirm", "Wasser", "Rise wellness", "ADT", "Auto", "Strom", "Supplements", "Benzin", "Landscaping", "Lebensmittel", "Paypal", "Pets", "Eating out", "Counseling", "Church", "Shopping"],
     "Amount": [3225.0, 199.0, 8.5, 19.0, 60.0, 41.0, 120.0, 1100.0, 257.0, 0.0, 67.0, 588.0, 50.0, 0.0, 208.0, 0.0, 100.0, 48.0, 2000.0, 500.0, 200.0, 500.0, 0.0, 0.0, 800.0]
@@ -85,7 +85,7 @@ if "Group" not in expenses.columns:
     expenses["Group"] = expenses["Category"].apply(assign_group)
     expenses.to_csv(EXP_FILE, index=False)
 
-# Rest of data
+# Other data
 debts = load_df(DEBT_FILE, {"Debt Name": ["Mortgage", "Solar Battery Loan"], "Current Balance": [245000.0, 8500.0], "Monthly Payment": [1850.0, 145.0], "Interest Rate %": [3.8, 4.2]})
 investments = load_df(INV_FILE, {"Ticker": ["AAPL", "MSFT", "TSLA"], "Shares": [15, 8, 5], "Avg Purchase Price": [170.0, 320.0, 220.0]})
 btc_data = load_df(BTC_FILE, {"BTC Amount": [0.42]})
@@ -102,10 +102,9 @@ supplements = load_df(SUPPLEMENTS_FILE, {
 if "alex_income" not in st.session_state: st.session_state.alex_income = alex_income
 if "katrin_income" not in st.session_state: st.session_state.katrin_income = katrin_income
 
-# Tabs
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Overview", "📋 Expenses & Income", "💳 Debts", "📈 Investments"])
 
-# Overview tab (with $ + % pie)
+# Overview
 with tab1:
     st.header("Net Worth Snapshot")
     combined_income = st.session_state.alex_income + st.session_state.katrin_income
@@ -157,7 +156,6 @@ with tab1:
         fig_major = px.pie(summary_df, names="Category", values="Amount", title="Major Categories Breakdown")
         st.plotly_chart(fig_major, use_container_width=True)
 
-    # Investment pie with $ + %
     alloc_data = pd.DataFrame({
         "Category": ["Savings", "Stocks", "Bitcoin", "Altcoins", "Gold", "Silver", "Alex 401k", "Katrin 401k"],
         "Value": [savings_value, stocks_value, btc_value, altcoins_value, gold_value, silver_value, alex_401k, katrin_401k]
@@ -167,8 +165,6 @@ with tab1:
     fig_alloc = px.pie(alloc_data, names="Category", values="Value", title="Investment Allocation (Live Values)")
     fig_alloc.update_traces(text=alloc_data["Display"], textinfo="text", textposition="inside")
     st.plotly_chart(fig_alloc, use_container_width=True)
-
-# (Expenses, Debts, Investments tabs are fully included in the code - they appear after you commit)
 
 # Expenses tab
 with tab2:
@@ -196,6 +192,53 @@ with tab2:
         st.rerun()
     st.metric("Total Supplements", f"${edited_supp['Amount'].sum():,.0f}")
 
-# Debts & Investments tabs (shortened for space - full version is in the code)
+# Debts tab
+with tab3:
+    st.header("Debt Tracker")
+    edited_debts = st.data_editor(debts, num_rows="dynamic", use_container_width=True)
+    if st.button("💾 Save Debt Changes"):
+        save_df(edited_debts, DEBT_FILE)
+        st.rerun()
+    st.metric("Total Debt Owed", f"${total_debt:,.0f}")
+
+# Investments tab
+with tab4:
+    st.header("📈 Investments (Live Prices)")
+    with st.expander("💵 Cash Savings", expanded=True):
+        new_savings = st.number_input("Savings Balance (USD)", value=float(savings), step=100.0)
+        if st.button("💾 Save Savings"):
+            pd.DataFrame({"Savings USD": [new_savings]}).to_csv(SAVINGS_FILE, index=False)
+            st.rerun()
+    with st.expander("🥇 Gold & Silver (Live)", expanded=True):
+        colG, colS = st.columns(2)
+        with colG: new_gold = st.number_input("Gold (grams)", value=float(metals["Gold Grams"].iloc[0]), step=1.0)
+        with colS: new_silver = st.number_input("Silver (ounces)", value=float(metals["Silver Ounces"].iloc[0]), step=1.0)
+        if st.button("💾 Save Metals"):
+            pd.DataFrame({"Gold Grams": [new_gold], "Silver Ounces": [new_silver]}).to_csv(METALS_FILE, index=False)
+            st.rerun()
+        st.metric("Gold Value", f"${gold_value:,.0f}" if 'gold_value' in locals() else "Live price loading...")
+        st.metric("Silver Value", f"${silver_value:,.0f}" if 'silver_value' in locals() else "Live price loading...")
+    with st.expander("📈 Stocks", expanded=False):
+        edited_inv = st.data_editor(investments, num_rows="dynamic", use_container_width=True)
+        if st.button("💾 Save Stock Changes"): save_df(edited_inv, INV_FILE); st.rerun()
+    with st.expander("🪙 Altcoins (XRP, ADA, SOL, DOT)", expanded=True):
+        edited_alt = st.data_editor(altcoins, num_rows="dynamic", use_container_width=True)
+        if st.button("💾 Save Altcoins"): save_df(edited_alt, ALTCOINS_FILE); st.rerun()
+    with st.expander("₿ Bitcoin (Live)", expanded=True):
+        edited_btc = st.data_editor(btc_data, use_container_width=True)
+        if st.button("💾 Save Bitcoin Amount"): save_df(edited_btc, BTC_FILE); st.rerun()
+        try:
+            btc_price = yf.Ticker("BTC-USD").history(period="1d")["Close"].iloc[-1]
+            btc_value = edited_btc["BTC Amount"].iloc[0] * btc_price
+            st.metric("Bitcoin Value", f"${btc_value:,.0f}", f"@ ${btc_price:,.0f}")
+        except: st.write("Bitcoin price temporarily unavailable")
+    with st.expander("🏦 401k Accounts", expanded=True):
+        colAx, colKa = st.columns(2)
+        with colAx: new_alex401 = st.number_input("Alex 401k Balance", value=float(alex_401k), step=100.0)
+        with colKa: new_katrin401 = st.number_input("Katrin 401k Balance", value=float(katrin_401k), step=100.0)
+        if st.button("💾 Save 401k Balances"):
+            pd.DataFrame({"Alex 401k": [new_alex401], "Katrin 401k": [new_katrin401]}).to_csv(RETIREMENT_FILE, index=False)
+            st.rerun()
+    if st.button("🔄 Refresh All Live Prices"): st.rerun()
 
 st.caption("Password-protected cloud version — all data saved on Streamlit Cloud")
