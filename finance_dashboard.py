@@ -3,32 +3,7 @@ import pandas as pd
 import plotly.express as px
 import yfinance as yf
 import os
-# ================== PASSWORD PROTECTION (WITH DEBUG) ==================
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
 
-PASSWORD = "test"   # ← Make sure it's exactly this (no extra spaces)
-
-if not st.session_state.logged_in:
-    st.title("🔒 Alex's Personal Finance Dashboard")
-    st.markdown("### Enter Password")
-    
-    # DEBUG LINE — this shows what the app is actually using
-    st.write("**DEBUG:** The app is currently expecting password =", repr(PASSWORD))
-    
-    pw = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if pw == PASSWORD:
-            st.session_state.logged_in = True
-            st.rerun()
-        else:
-            st.error("Incorrect password")
-    st.stop()
-            st.session_state.logged_in = True
-            st.rerun()
-        else:
-            st.error("Incorrect password")
-    st.stop()
 st.set_page_config(page_title="Alex's Finance Dashboard", layout="wide")
 st.title("💰 Alex's Personal Finance Dashboard")
 st.markdown("**Your exact expenses are now the default** — just edit amounts & groups")
